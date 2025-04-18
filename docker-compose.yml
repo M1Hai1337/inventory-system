@@ -1,0 +1,43 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: laravel-app
+        volumes:
+            - .:/var/www/html
+        networks:
+            - app-network
+
+    webserver:
+        image: nginx:alpine
+        container_name: nginx-webserver
+        ports:
+            - "8081:80"
+        volumes:
+            - .:/var/www/html
+            - ./docker-compose/nginx:/etc/nginx/conf.d/
+        networks:
+            - app-network
+
+    db:
+        image: postgres:13
+        container_name: postgres-db
+        environment:
+            POSTGRES_DB: inventory_system_database
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: 1337
+        ports:
+            - "5433:5432"
+        volumes:
+            - dbdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    dbdata:
+        driver: local
