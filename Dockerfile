@@ -33,13 +33,40 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy composer.json and composer.lock
+COPY composer*.json ./
+
+# Set proper permissions
+RUN chown www-data:www-data /var/www/html
+
+# Install dependencies
+USER www-data
+RUN composer install --no-scripts --no-autoloader
+
 # Copy the existing application directory contents to the working directory
-COPY . /var/www/html
+COPY --chown=www-data:www-data . .
 
-# Copy the existing application directory permissions to the working directory
-COPY --chown=www-data:www-data . /var/www/html
+# Generate optimized autoload files
+RUN composer dump-autoload --optimize
 
-# Change current user to www
+# Switch back to root to create directories and set permissions
+USER root
+
+# Create Laravel storage and cache directories
+RUN mkdir -p /var/www/html/storage/framework/sessions \
+             /var/www/html/storage/framework/views \
+             /var/www/html/storage/framework/cache \
+             /var/www/html/storage/logs \
+             /var/www/html/bootstrap/cache
+
+# Set proper ownership and permissions
+RUN chown -R www-data:www-data /var/www/html/storage \
+                               /var/www/html/bootstrap/cache
+
+RUN chmod -R 775 /var/www/html/storage \
+             /var/www/html/bootstrap/cache
+
+# Switch back to www-data user
 USER www-data
 
 # Expose port 9000 and start php-fpm server

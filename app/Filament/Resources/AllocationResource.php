@@ -66,14 +66,13 @@ class AllocationResource extends Resource
             ])
             ->filters([
                 TernaryFilter::make('return_date')
-                ->label('Returned')
-                ->nullable()
-//                ->query(fn (Builder $query): Builder => $query->whereNotNull('return_date'))
+                    ->label('Returned')
+                    ->nullable()
             ])
             ->actions([
                 Tables\Actions\Action::make('return')
                     ->label('Return')
-                    ->visible(fn (Allocation $record) => $record->return_date === null)
+                    ->visible(fn(Allocation $record) => $record->return_date === null)
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->action(function (Allocation $record) {
                         $record->update(['return_date' => now()]);

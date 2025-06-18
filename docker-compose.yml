@@ -6,6 +6,9 @@ services:
         container_name: laravel-app
         volumes:
             - .:/var/www/html
+        depends_on:
+            - db
+            - redis
         networks:
             - app-network
 
@@ -13,10 +16,12 @@ services:
         image: nginx:alpine
         container_name: nginx-webserver
         ports:
-            - "8081:80"
+            - "3000:80"
         volumes:
             - .:/var/www/html
             - ./docker-compose/nginx:/etc/nginx/conf.d/
+        depends_on:
+            - app
         networks:
             - app-network
 
@@ -31,6 +36,14 @@ services:
             - "5433:5432"
         volumes:
             - dbdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+    redis:
+        image: redis:alpine
+        container_name: redis-cache
+        ports:
+            - "6379:6379"
         networks:
             - app-network
 
